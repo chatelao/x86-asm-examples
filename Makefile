@@ -1,7 +1,7 @@
 CC = x86_64-w64-mingw32-gcc
 CFLAGS ?= -Wall -Wextra
 TARGET = hello_world.exe
-SRC = src/hello_world.s
+SRC = examples/hello_world/hello_world.s
 
 .PHONY: all clean test
 
