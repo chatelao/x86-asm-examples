@@ -1,20 +1,30 @@
-CC = x86_64-w64-mingw32-gcc
-CFLAGS ?= -Wall -Wextra
-TARGET = hello_world.exe
-SRC = examples/hello_world/hello_world.s
+EXAMPLES = \
+	hello_world \
+	matrix_mul \
+	fibonacci \
+	factorial \
+	gcd \
+	bit_manipulation \
+	string_reverse \
+	bubble_sort \
+	binary_search \
+	dot_product \
+	crc32_hash \
+	cpuid_vendor
 
-.PHONY: all clean test
+.PHONY: all clean test $(EXAMPLES)
 
-all: $(TARGET)
+all: $(EXAMPLES)
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) $< -o $@
+$(EXAMPLES):
+	$(MAKE) -C examples/$@ all
 
-test: $(TARGET)
-	@which wine > /dev/null 2>&1 || (echo "wine not found, skipping execution test" && exit 0)
-	@OUTPUT=$$(wine ./$(TARGET) 2>/dev/null | tr -d '\r'); \
-	echo "Program output: $$OUTPUT"; \
-	test "$$OUTPUT" = "Hello, World!"
+test:
+	@for dir in $(EXAMPLES); do \
+		$(MAKE) -C examples/$$dir test || exit 1; \
+	done
 
 clean:
-	rm -f $(TARGET)
+	@for dir in $(EXAMPLES); do \
+		$(MAKE) -C examples/$$dir clean || exit 1; \
+	done
