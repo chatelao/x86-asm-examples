@@ -8,7 +8,9 @@ SRC = string_reverse.s
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) -s -nostartfiles -nostdlib -Wl,-e,main $< -o $@ -lmsvcrt -lkernel32
+
+# $(CC) $(CFLAGS) $< -o $@
 
 test: $(TARGET)
 	@which wine > /dev/null 2>&1 || (echo "wine not found, skipping execution test" && exit 0)
