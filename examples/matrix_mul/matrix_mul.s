@@ -53,12 +53,46 @@ main:
     vmovaps %zmm19, 64(%rsp){%k1}
     vzeroupper                      # Clean upper vector state before calling C library
 
-    # Print header message
+    # ---------------------------- Print inputs ------------------------------
+    leaq    input_a_msg(%rip), %rcx
+    call    puts
+    leaq    matrix_a(%rip), %rcx
+    call    print_matrix
+
+    leaq    input_b_msg(%rip), %rcx
+    call    puts
+    leaq    matrix_b(%rip), %rcx
+    call    print_matrix
+
+    vcvtss2sd   alpha(%rip), %xmm1, %xmm1
+    vmovq       %xmm1, %rdx         # 2nd arg (alpha) in both %xmm1 and %rdx
+    leaq        alpha_fmt(%rip), %rcx
+    call        printf
+
+    # ---------------------------- Print output ------------------------------
     leaq    header_msg(%rip), %rcx
     call    puts
+    leaq    64(%rsp), %rcx          # Result matrix C on the stack
+    call    print_matrix
 
-    # Print each of the 4 rows of C using Windows x64 variadic calling convention
-    leaq    64(%rsp), %rbx          # Pointer to current row of C
+    xorl    %eax, %eax              # Return 0
+    leaq    -16(%rbp), %rsp
+    popq    %rsi
+    popq    %rbx
+    popq    %rbp
+    ret
+
+# -----------------------------------------------------------------------------
+# print_matrix: print a 4x4 FP32 matrix, one row per line.
+#   %rcx = pointer to 16 row-major floats
+# Uses the Windows x64 variadic calling convention for printf.
+# -----------------------------------------------------------------------------
+    .def    print_matrix; .scl 3; .type 32; .endef
+print_matrix:
+    pushq   %rbx                    # Non-volatile: row pointer
+    pushq   %rsi                    # Non-volatile: row counter
+    subq    $40, %rsp               # 32-byte shadow space + 5th arg; keeps 16-byte alignment
+    movq    %rcx, %rbx              # Pointer to current row
     movl    $4, %esi                # Row loop counter
 
 .Lprint_row:
@@ -77,11 +111,9 @@ main:
     decl    %esi
     jnz     .Lprint_row
 
-    xorl    %eax, %eax              # Return 0
-    leaq    -16(%rbp), %rsp
+    addq    $40, %rsp
     popq    %rsi
     popq    %rbx
-    popq    %rbp
     ret
 
     .section .rdata,"dr"
@@ -102,6 +134,12 @@ matrix_b:
 alpha:
     .float   1.0
 
+input_a_msg:
+    .asciz  "Input matrix A:"
+input_b_msg:
+    .asciz  "Input matrix B:"
+alpha_fmt:
+    .asciz  "Input alpha = %.1f\n"
 header_msg:
     .asciz  "Result of 4x4 Matrix Multiplication (C = A * B):"
 row_fmt:
