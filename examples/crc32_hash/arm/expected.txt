@@ -1,0 +1,1 @@
+CRC32C("Hello, CRC32") = 0x25EF37B5

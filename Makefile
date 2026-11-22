@@ -12,19 +12,32 @@ EXAMPLES = \
 	crc32_hash \
 	cpuid_vendor
 
-.PHONY: all clean test $(EXAMPLES)
+ARCHS = x86_64 arm riscv
 
-all: $(EXAMPLES)
+.PHONY: all clean test $(ARCHS) $(addprefix test-,$(ARCHS)) $(addprefix clean-,$(ARCHS)) $(EXAMPLES)
 
-$(EXAMPLES):
-	$(MAKE) -C examples/$@ all
+all: $(ARCHS)
 
-test:
+$(ARCHS):
 	@for dir in $(EXAMPLES); do \
-		$(MAKE) -C examples/$$dir test || exit 1; \
+		$(MAKE) -C examples/$$dir/$@ all || exit 1; \
 	done
 
-clean:
+test: $(addprefix test-,$(ARCHS))
+
+$(addprefix test-,$(ARCHS)): test-%:
 	@for dir in $(EXAMPLES); do \
-		$(MAKE) -C examples/$$dir clean || exit 1; \
+		$(MAKE) -C examples/$$dir/$* test || exit 1; \
+	done
+
+clean: $(addprefix clean-,$(ARCHS))
+
+$(addprefix clean-,$(ARCHS)): clean-%:
+	@for dir in $(EXAMPLES); do \
+		$(MAKE) -C examples/$$dir/$* clean || exit 1; \
+	done
+
+$(EXAMPLES):
+	@for arch in $(ARCHS); do \
+		$(MAKE) -C examples/$@/$$arch all || exit 1; \
 	done

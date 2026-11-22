@@ -1,0 +1,1 @@
+popcnt=13 tzcnt=12 lzcnt=8 bswap=0x00100000F0F0F000

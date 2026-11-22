@@ -1,0 +1,1 @@
+CPU Vendor: Arm (CPUID: 0x410FD221, Part: Cortex-M55 r0p1)
