@@ -10,13 +10,11 @@ SRC        = string_reverse.s
 
 ifeq ($(TARGET_OS),windows)
   CC      = x86_64-w64-mingw32-gcc
-  AS      = x86_64-w64-mingw32-as
-  LD      = x86_64-w64-mingw32-ld
   TARGET  = string_reverse.exe
-  LDFLAGS = -s -nostdlib -e start \
-            --file-alignment 16 --section-alignment 16 \
-            --disable-dynamicbase --disable-reloc-section --disable-high-entropy-va \
-            --no-insert-timestamp --subsystem console
+  LDFLAGS = -s -nostdlib -Wl,-e,start \
+            -Wl,--file-alignment,16 -Wl,--section-alignment,16 \
+            -Wl,--disable-dynamicbase -Wl,--disable-reloc-section -Wl,--disable-high-entropy-va \
+            -Wl,--no-insert-timestamp -Wl,--subsystem,console
   LIBS    = -lkernel32
 else
   CC      = gcc
@@ -31,10 +29,7 @@ all: $(TARGET)
 
 ifeq ($(TARGET_OS),windows)
 $(TARGET): $(SRC)
-	gcc -E -D_WIN32 -x assembler-with-cpp $< -o string_reverse.tmp.s
-	$(AS) string_reverse.tmp.s -o string_reverse.o
-	$(LD) $(LDFLAGS) string_reverse.o $(LIBS) -o $@
-	@rm -f string_reverse.tmp.s string_reverse.o
+	$(CC) -x assembler-with-cpp $(LDFLAGS) $< $(LIBS) -o $@
 	@echo "$(TARGET): $$(stat -c %s $@) bytes"
 
 test: $(TARGET)
